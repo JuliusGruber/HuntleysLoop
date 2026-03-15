@@ -18,7 +18,7 @@ Claude reads `SETUP.md`, which contains all template files inline, and scaffolds
 |---|---|
 | `SETUP.md` | Machine-readable setup instructions with all template files inline |
 | `ralphLoop/` | Working example of the loop files (prompts, loop script, AGENTS.md) |
-| `plan/ralphLoopImplPlan.md` | Design reference — rationale, decisions, principles |
+| `documentation/ralph-loop-design.md` | Design reference — rationale, decisions, prompt engineering patterns |
 
 ## How the loop works
 
