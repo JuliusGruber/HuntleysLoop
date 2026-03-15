@@ -19,6 +19,18 @@ Claude reads `SETUP.md`, which contains all template files inline, and scaffolds
 | `SETUP.md` | Machine-readable setup instructions with all template files inline |
 | `ralphLoop/` | Working example of the loop files (prompts, loop script, AGENTS.md) |
 | `documentation/ralph-loop-design.md` | Design reference — rationale, decisions, prompt engineering patterns |
+| `skills/setup-ralph-loop.md` | Example Claude Code skill — copy to your project to enable `/setup-ralph-loop` |
+
+## Claude Code Skill
+
+An example skill is provided at `skills/setup-ralph-loop.md`. To use it, copy it into your target project:
+
+```bash
+mkdir -p .claude/commands
+cp skills/setup-ralph-loop.md .claude/commands/setup-ralph-loop.md
+```
+
+Then run `/setup-ralph-loop` in Claude Code to scaffold the Ralph Loop in that project.
 
 ## How the loop works
 
