@@ -2,7 +2,7 @@
 
 ## Overview
 
-Implement the simplest possible autonomous coding agent using the "Ralph Wiggum" pattern — a bash while loop that repeatedly feeds a prompt to Claude CLI in headless mode. Each iteration picks one task, implements it, runs tests, commits, and exits with a fresh context window. `IMPLEMENTATION_PLAN.md` on disk is the shared state between iterations.
+Set up the "Ralph Loop" in this git repo — a bash `while` loop that repeatedly feeds a prompt to Claude CLI in headless mode. Each iteration picks one task, implements it, runs tests, commits, and exits with a fresh context window. `IMPLEMENTATION_PLAN.md` on disk is the shared state between iterations. Follow this plan to scaffold all required files.
 
 ---
 
