@@ -1,49 +1,52 @@
 # HuntleysLoop
 
-A template repo for setting up the **Ralph Loop** — an autonomous coding loop powered by Claude CLI.
-
-The Ralph Loop is a bash `while` loop that repeatedly feeds a prompt to `claude -p` in headless mode. Each iteration picks one task, implements it, validates it, commits, and exits with a fresh context window. `IMPLEMENTATION_PLAN.md` on disk is the shared state between iterations.
-
-## Usage
-
-Tell Claude to fetch the setup instructions directly:
+Paste this into any Claude Code conversation to scaffold an autonomous Ralph Loop in your project:
 
 > Fetch https://raw.githubusercontent.com/JuliusGruber/HuntleysLoop/main/SETUP.md and follow every step to scaffold a Ralph Loop in this project.
 
-Claude fetches `SETUP.md`, then follows it step by step — analyzing your project, scaffolding a `ralphLoop/` directory, and filling in your actual build/test commands.
+Claude fetches `SETUP.md`, analyzes your project, scaffolds a `ralphLoop/` directory, and fills in your actual build/test/lint commands. One message, no files to copy.
 
-### As a Claude Code skill
+## What happens
 
-Copy `skills/setup-ralph-loop.md` into your target project:
+`SETUP.md` is self-contained — all templates inline, 10 steps, verification at the end. Claude will:
+
+1. Detect your language, framework, build commands, and conventions (Step 0)
+2. Create `ralphLoop/` with loop script, prompt files, and a customized `AGENTS.md`
+3. Verify everything is correct before finishing
+
+## How the loop works
+
+After setup, you drive the loop:
+
+1. **Edit `ralphLoop/JTBD.md`** — describe what you want built
+2. **`bash ralphLoop/loop.sh specs 2`** — break the JTBD into behavioral specs
+3. **`bash ralphLoop/loop.sh plan 2`** — produce a prioritized implementation plan
+4. **`bash ralphLoop/loop.sh build`** — autonomously implement until done
+
+Each iteration picks one task, implements it, validates (build/test/lint), commits, and exits with a fresh context. `IMPLEMENTATION_PLAN.md` on disk is the shared state between iterations. Override the model with `RALPH_MODEL=sonnet bash ralphLoop/loop.sh build`.
+
+## Alternative: as a slash command
+
+If you prefer a reusable skill, copy `skills/setup-ralph-loop.md` to your project:
 
 ```bash
 mkdir -p .claude/commands
-cp skills/setup-ralph-loop.md .claude/commands/setup-ralph-loop.md
+curl -o .claude/commands/setup-ralph-loop.md https://raw.githubusercontent.com/JuliusGruber/HuntleysLoop/main/skills/setup-ralph-loop.md
 ```
 
-Then run `/setup-ralph-loop` in Claude Code to scaffold the Ralph Loop.
+Then run `/setup-ralph-loop` in Claude Code.
 
 ## What's in this repo
 
 | File | Purpose |
 |---|---|
-| `CLAUDE.md` | Skill entry point — tells Claude to follow `SETUP.md` |
-| `SETUP.md` | Machine-readable setup instructions with all template files inline |
-| `skills/setup-ralph-loop.md` | Claude Code skill — copy to your project to enable `/setup-ralph-loop` |
-| `ralphLoop/` | Working reference example of the loop files (prompts, loop script, AGENTS.md) |
-| `documentation/ralph-loop-design.md` | Design reference — rationale, decisions, prompt engineering patterns |
-
-## How the loop works
-
-1. **Edit `ralphLoop/JTBD.md`** — describe what you want built
-2. **`bash ralphLoop/loop.sh specs`** — break the JTBD into behavioral specs
-3. **`bash ralphLoop/loop.sh plan`** — study specs + code, produce a prioritized task list
-4. **`bash ralphLoop/loop.sh build`** — pick one task per iteration, implement, validate, commit
-
-Each mode uses its own prompt file (`PROMPT_specs.md`, `PROMPT_plan.md`, `PROMPT_build.md`). The loop pushes to remote after each iteration. Override the model with `RALPH_MODEL=sonnet bash ralphLoop/loop.sh build`.
+| `SETUP.md` | Self-contained setup instructions with all templates inline |
+| `skills/setup-ralph-loop.md` | Claude Code slash command — copy to enable `/setup-ralph-loop` |
+| `ralphLoop/` | Reference example (not used during setup — templates come from `SETUP.md`) |
+| `documentation/ralph-loop-design.md` | Design rationale and prompt engineering patterns |
 
 ## Requirements
 
 - Claude CLI installed and authenticated
 - Git repository
-- Run in a sandbox (Docker, E2B, Modal, Fly Sprites, Daytona) — the loop has full permissions
+- Run the loop in a sandbox (Docker, E2B, Modal, Daytona) — it uses `--dangerously-skip-permissions`
