@@ -6,11 +6,11 @@ The Ralph Loop is a bash `while` loop that repeatedly feeds a prompt to `claude 
 
 ## Usage
 
-Point Claude at this repo and tell it to follow the setup instructions:
+Tell Claude to fetch the setup instructions directly:
 
-> Set up a Ralph Loop in my project following https://github.com/JuliusGruber/HuntleysLoop
+> Fetch https://raw.githubusercontent.com/JuliusGruber/HuntleysLoop/main/SETUP.md and follow every step to scaffold a Ralph Loop in this project.
 
-Claude reads `CLAUDE.md`, then follows `SETUP.md` step by step — analyzing your project, scaffolding a `ralphLoop/` directory, and filling in your actual build/test commands.
+Claude fetches `SETUP.md`, then follows it step by step — analyzing your project, scaffolding a `ralphLoop/` directory, and filling in your actual build/test commands.
 
 ### As a Claude Code skill
 
