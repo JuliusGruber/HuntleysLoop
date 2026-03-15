@@ -2,27 +2,28 @@
 
 ## Build & Run
 
-<!-- Update these commands for your project -->
+<!-- CUSTOMIZE: replace with your project's build and run commands -->
 ```bash
 # Build
-# npm run build
+# <your build command>
 
 # Run
-# npm start
+# <your run command>
 ```
 
 ## Validation
 
+<!-- CUSTOMIZE: replace with your project's test, typecheck, and lint commands -->
 <!-- These commands are your backpressure — they reject bad work -->
 ```bash
 # Tests
-# npm test
+# <your test command>
 
 # Type checking
-# npx tsc --noEmit
+# <your typecheck command>
 
 # Linting
-# npm run lint
+# <your lint command>
 ```
 
 ## Operational Notes
@@ -31,6 +32,6 @@
 
 ## Codebase Patterns
 
-<!-- Conventions the agent should follow -->
+<!-- CUSTOMIZE: replace with your project's conventions -->
 - One concern per file
 - Shared utilities go in `src/lib/`

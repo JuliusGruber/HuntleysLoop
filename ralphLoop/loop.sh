@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODE="${1:-build}"          # "plan", "build", or "specs"
 MAX_ITERS="${2:-0}"         # 0 = infinite
-PROMPT_FILE="PROMPT_${MODE}.md"
+PROMPT_FILE="$SCRIPT_DIR/PROMPT_${MODE}.md"
 ITER=0
 
 if [ ! -f "$PROMPT_FILE" ]; then
