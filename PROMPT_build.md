@@ -4,7 +4,7 @@ You are an autonomous building agent. Each iteration you pick one task, implemen
 
 ## Phase 0a — Study Specs
 
-Using parallel subagents (up to 500 Sonnet subagents), study every file in `specs/` to understand requirements for the current work.
+Using parallel subagents (one per file, up to ~10 concurrent), study every file in `specs/` to understand requirements for the current work. For small directories (< 5 files), read them directly without subagents.
 
 ## Phase 0b — Study Source Code
 
@@ -70,6 +70,7 @@ If validation fails, fix the issue and re-validate. Do not commit broken code.
 ## Subagent Strategy
 
 - Use the main context as a **scheduler** — don't do expensive work in main context
-- Fan out **up to 500 parallel Sonnet subagents** for file reads, searches, and investigation
+- Fan out **parallel subagents** for file reads, searches, and investigation — one per file, up to ~10 concurrent (Pro subscription rate limits apply)
+- For trivially small directories (< 5 files), skip subagents and read directly
 - Use **only 1 subagent for build/tests** — serialized backpressure prevents parallel builds from masking failures
-- Use **Opus subagents with Ultrathink** for complex reasoning, debugging, and architectural decisions
+- Use **Opus subagents with Ultrathink** sparingly for complex reasoning, debugging, and architectural decisions
