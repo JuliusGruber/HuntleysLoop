@@ -10,35 +10,37 @@ Point Claude at this repo and tell it to follow the setup instructions:
 
 > Set up a Ralph Loop in my project following https://github.com/JuliusGruber/HuntleysLoop
 
-Claude reads `SETUP.md`, which contains all template files inline, and scaffolds a `ralphLoop/` directory in your project.
+Claude reads `CLAUDE.md`, then follows `SETUP.md` step by step — analyzing your project, scaffolding a `ralphLoop/` directory, and filling in your actual build/test commands.
 
-## What's in this repo
+### As a Claude Code skill
 
-| File | Purpose |
-|---|---|
-| `SETUP.md` | Machine-readable setup instructions with all template files inline |
-| `ralphLoop/` | Working example of the loop files (prompts, loop script, AGENTS.md) |
-| `documentation/ralph-loop-design.md` | Design reference — rationale, decisions, prompt engineering patterns |
-| `skills/setup-ralph-loop.md` | Example Claude Code skill — copy to your project to enable `/setup-ralph-loop` |
-
-## Claude Code Skill
-
-An example skill is provided at `skills/setup-ralph-loop.md`. To use it, copy it into your target project:
+Copy `skills/setup-ralph-loop.md` into your target project:
 
 ```bash
 mkdir -p .claude/commands
 cp skills/setup-ralph-loop.md .claude/commands/setup-ralph-loop.md
 ```
 
-Then run `/setup-ralph-loop` in Claude Code to scaffold the Ralph Loop in that project.
+Then run `/setup-ralph-loop` in Claude Code to scaffold the Ralph Loop.
+
+## What's in this repo
+
+| File | Purpose |
+|---|---|
+| `CLAUDE.md` | Skill entry point — tells Claude to follow `SETUP.md` |
+| `SETUP.md` | Machine-readable setup instructions with all template files inline |
+| `skills/setup-ralph-loop.md` | Claude Code skill — copy to your project to enable `/setup-ralph-loop` |
+| `ralphLoop/` | Working reference example of the loop files (prompts, loop script, AGENTS.md) |
+| `documentation/ralph-loop-design.md` | Design reference — rationale, decisions, prompt engineering patterns |
 
 ## How the loop works
 
-1. **`bash ralphLoop/loop.sh specs`** — break a Job to Be Done into behavioral specs
-2. **`bash ralphLoop/loop.sh plan`** — study specs + code, produce a prioritized task list
-3. **`bash ralphLoop/loop.sh build`** — pick one task per iteration, implement, validate, commit
+1. **Edit `ralphLoop/JTBD.md`** — describe what you want built
+2. **`bash ralphLoop/loop.sh specs`** — break the JTBD into behavioral specs
+3. **`bash ralphLoop/loop.sh plan`** — study specs + code, produce a prioritized task list
+4. **`bash ralphLoop/loop.sh build`** — pick one task per iteration, implement, validate, commit
 
-Each mode uses its own prompt file (`PROMPT_specs.md`, `PROMPT_plan.md`, `PROMPT_build.md`). The loop pushes to remote after each iteration.
+Each mode uses its own prompt file (`PROMPT_specs.md`, `PROMPT_plan.md`, `PROMPT_build.md`). The loop pushes to remote after each iteration. Override the model with `RALPH_MODEL=sonnet bash ralphLoop/loop.sh build`.
 
 ## Requirements
 

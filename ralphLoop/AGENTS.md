@@ -1,5 +1,11 @@
 # AGENTS.md — Operational Guide
 
+## Source Directories
+
+<!-- CUSTOMIZE: replace with your project's actual source directories -->
+- Main source: `src/`
+- Shared utilities: `src/lib/`
+
 ## Build & Run
 
 <!-- CUSTOMIZE: replace with your project's build and run commands -->
@@ -34,4 +40,3 @@
 
 <!-- CUSTOMIZE: replace with your project's conventions -->
 - One concern per file
-- Shared utilities go in `src/lib/`

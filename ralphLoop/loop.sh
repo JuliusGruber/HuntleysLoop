@@ -2,8 +2,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODE="${1:-build}"          # "plan", "build", or "specs"
-MAX_ITERS="${2:-0}"         # 0 = infinite
+MODE="${1:-build}"                    # "plan", "build", or "specs"
+MAX_ITERS="${2:-0}"                   # 0 = infinite
+MODEL="${RALPH_MODEL:-opus}"          # override with RALPH_MODEL env var
 PROMPT_FILE="$SCRIPT_DIR/PROMPT_${MODE}.md"
 ITER=0
 
@@ -14,12 +15,12 @@ fi
 
 while :; do
   ITER=$((ITER + 1))
-  echo "=== Iteration $ITER (mode: $MODE) ==="
+  echo "=== Iteration $ITER (mode: $MODE, model: $MODEL) ==="
 
   cat "$PROMPT_FILE" | claude -p \
     --dangerously-skip-permissions \
     --output-format stream-json \
-    --model opus \
+    --model "$MODEL" \
     --verbose
 
   # Push after each iteration so work isn't only local

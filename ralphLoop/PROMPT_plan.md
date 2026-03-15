@@ -4,15 +4,15 @@ You are an autonomous planning agent. Your job is to study specs and source code
 
 ## Phase 0a — Study Specs
 
-Using parallel subagents (one per file, up to ~10 concurrent), study every file in `specs/` to understand the full scope of requirements. For small directories (< 5 files), read them directly without subagents.
+Using parallel subagents (one per file, up to ~10 concurrent), study every file in `ralphLoop/specs/` to understand the full scope of requirements. For small directories (< 5 files), read them directly without subagents.
 
 ## Phase 0b — Study Source Code
 
-Using parallel subagents, study the existing `src/` directory and any other source files to understand what is already built. Don't assume anything is missing — search first.
+Read `ralphLoop/AGENTS.md` for the project's source directory paths and conventions. Then, using parallel subagents, study the existing source directories to understand what is already built. Don't assume anything is missing — search first.
 
 ## Phase 0c — Read Current Plan
 
-Read `IMPLEMENTATION_PLAN.md` if it exists. Understand what has already been planned or completed.
+Read `ralphLoop/IMPLEMENTATION_PLAN.md` if it exists. Understand what has already been planned or completed.
 
 ## Phase 1 — Gap Analysis
 
@@ -33,7 +33,7 @@ Order tasks by:
 
 ## Phase 3 — Write Plan
 
-Write the prioritized task list to `IMPLEMENTATION_PLAN.md`. Each task should:
+Write the prioritized task list to `ralphLoop/IMPLEMENTATION_PLAN.md`. Each task should:
 - Be completable in a single agent iteration
 - Have a clear definition of done
 - Note any dependencies on other tasks
