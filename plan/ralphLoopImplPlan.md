@@ -16,6 +16,8 @@ HuntleysLoop/
 ├── PROMPT_specs.md            # Spec-writing mode prompt
 ├── AGENTS.md                  # Operational guide (~60 lines max)
 ├── IMPLEMENTATION_PLAN.md     # Shared state between iterations (starts empty)
+├── plan/                      # Planning documentation (human-maintained)
+│   └── ralphLoopImplPlan.md   # This file — design reference for the loop itself
 ├── specs/                     # Requirements (one file per concern)
 │   └── [your-feature].md      # e.g., specs/core-functionality.md
 ├── src/                       # Application source code (built by Ralph)
@@ -76,11 +78,14 @@ Instructs Claude to collaboratively define specs from a JTBD (Job to Be Done). R
 - **One spec file per topic of concern** — written to `specs/FILENAME.md`
 - Use subagents to load information from URLs into context when researching requirements
 
+Each spec follows a **template structure**: Summary, Context, Acceptance Criteria, Edge Cases, Out of Scope.
+
 ### 3. `PROMPT_plan.md` — Planning Mode Prompt
 
 Instructs Claude to:
 - **Study** (not "read") `specs/*` to learn requirements using parallel subagents
 - **Study** existing `src/` code using parallel subagents
+- **Study** `AGENTS.md` for operational context
 - Do gap analysis (what's built vs. what's specified)
 - Output a prioritized TODO list into `IMPLEMENTATION_PLAN.md`
 - **Do NOT implement anything** — plan only
@@ -109,10 +114,10 @@ Instructs Claude to:
 #### Subagent Strategy
 
 Baked into the prompt — the main agent acts as a scheduler:
-- Fan out **up to 500 parallel Sonnet subagents** for file reads, searches, and investigation
+- Fan out **parallel subagents** for file reads, searches, and investigation — one per file, up to ~10 concurrent (Pro subscription rate limits apply)
+- For trivially small directories (< 5 files), skip subagents and read directly
 - **Only 1 subagent for build/tests** — serialized backpressure prevents parallel builds from masking failures
-- Use **Opus subagents with "Ultrathink"** for complex reasoning (debugging, architectural decisions)
-- Each subagent gets ~156KB of context that gets garbage collected after use
+- Use **Opus subagents with "Ultrathink" sparingly** for complex reasoning (debugging, architectural decisions)
 
 #### Guardrails (Escalating Priority via `999...` Numbering)
 
@@ -135,7 +140,7 @@ Guardrails use escalating `9`, `99`, `999`, ... numbering in the prompt to signa
 These specific phrasings matter for Claude's behavior:
 - **"study"** (not "read" or "look at") — triggers deeper analysis
 - **"don't assume not implemented"** — the Achilles' heel guardrail; forces code search before writing
-- **"using parallel subagents"** / **"up to N subagents"** — triggers parallel tool use
+- **"using parallel subagents"** / **"up to ~10 concurrent"** — triggers parallel tool use within Pro-tier limits
 - **"only 1 subagent for build/tests"** — backpressure control
 - **"Ultrathink"** — triggers extended reasoning mode
 - **"capture the why"** — prompts documentation of reasoning
@@ -192,7 +197,7 @@ Standard ignores for the project.
 | Task granularity | 1 task per iteration | Keeps context usage in the "smart zone" (40-60%). |
 | Self-correction | Loop iterations | Wrong? Next iteration reads updated plan and fixes it. |
 | Permissions | `--dangerously-skip-permissions` | Required for autonomy — run in a sandbox! |
-| Subagent fan-out | Up to 500 Sonnet for reads, 1 for builds | Maximizes throughput while serializing backpressure. |
+| Subagent fan-out | Up to ~10 concurrent for reads, 1 for builds | Maximizes throughput within Pro-tier rate limits while serializing backpressure. |
 | Format preference | Markdown over JSON | Better token efficiency for LLM context. |
 | Remote sync | `git push` after each iteration | Work isn't only local; survives sandbox loss. |
 
