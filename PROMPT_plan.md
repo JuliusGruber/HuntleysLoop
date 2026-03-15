@@ -4,7 +4,7 @@ You are an autonomous planning agent. Your job is to study specs and source code
 
 ## Phase 0a — Study Specs
 
-Using parallel subagents (up to 500 Sonnet subagents), study every file in `specs/` to understand the full scope of requirements.
+Using parallel subagents (one per file, up to ~10 concurrent), study every file in `specs/` to understand the full scope of requirements. For small directories (< 5 files), read them directly without subagents.
 
 ## Phase 0b — Study Source Code
 
