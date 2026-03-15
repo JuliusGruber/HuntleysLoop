@@ -4,24 +4,27 @@
 
 Set up the "Ralph Loop" in this git repo — a bash `while` loop that repeatedly feeds a prompt to Claude CLI in headless mode. Each iteration picks one task, implements it, runs tests, commits, and exits with a fresh context window. `IMPLEMENTATION_PLAN.md` on disk is the shared state between iterations. Follow this plan to scaffold all required files.
 
+**All Ralph Loop files must be placed inside a `ralphLoop/` folder** at the repo root. This keeps the loop infrastructure separate from the application code it builds.
+
 ---
 
 ## Minimal File Tree
 
 ```
 HuntleysLoop/
-├── loop.sh                    # The bash while loop (the "orchestrator")
-├── PROMPT_plan.md             # Planning mode prompt
-├── PROMPT_build.md            # Building mode prompt
-├── PROMPT_specs.md            # Spec-writing mode prompt
-├── AGENTS.md                  # Operational guide (~60 lines max)
-├── IMPLEMENTATION_PLAN.md     # Shared state between iterations (starts empty)
-├── plan/                      # Planning documentation (human-maintained)
-│   └── ralphLoopImplPlan.md   # This file — design reference for the loop itself
-├── specs/                     # Requirements (one file per concern)
-│   └── [your-feature].md      # e.g., specs/core-functionality.md
-├── src/                       # Application source code (built by Ralph)
-│   └── lib/                   # Shared utilities (Ralph's "standard library")
+├── ralphLoop/                     # All Ralph Loop files live here
+│   ├── loop.sh                    # The bash while loop (the "orchestrator")
+│   ├── PROMPT_plan.md             # Planning mode prompt
+│   ├── PROMPT_build.md            # Building mode prompt
+│   ├── PROMPT_specs.md            # Spec-writing mode prompt
+│   ├── AGENTS.md                  # Operational guide (~60 lines max)
+│   ├── IMPLEMENTATION_PLAN.md     # Shared state between iterations (starts empty)
+│   └── specs/                     # Requirements (one file per concern)
+│       └── [your-feature].md      # e.g., specs/core-functionality.md
+├── plan/                          # Planning documentation (human-maintained)
+│   └── ralphLoopImplPlan.md       # This file — design reference for the loop itself
+├── src/                           # Application source code (built by Ralph)
+│   └── lib/                       # Shared utilities (Ralph's "standard library")
 └── .gitignore
 ```
 
@@ -29,17 +32,18 @@ HuntleysLoop/
 
 ## Files to Create
 
-### 1. `loop.sh` — The Loop
+### 1. `ralphLoop/loop.sh` — The Loop
 
-The entire orchestrator. Supports `plan`, `build`, and `specs` modes via argument. Optional max-iterations as second argument. Pushes to remote after each successful iteration.
+The entire orchestrator. Supports `plan`, `build`, and `specs` modes via argument. Optional max-iterations as second argument. Pushes to remote after each successful iteration. Run from the repo root: `bash ralphLoop/loop.sh plan`.
 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODE="${1:-build}"          # "plan", "build", or "specs"
 MAX_ITERS="${2:-0}"         # 0 = infinite
-PROMPT_FILE="PROMPT_${MODE}.md"
+PROMPT_FILE="$SCRIPT_DIR/PROMPT_${MODE}.md"
 ITER=0
 
 if [ ! -f "$PROMPT_FILE" ]; then
@@ -67,7 +71,7 @@ while :; do
 done
 ```
 
-### 2. `PROMPT_specs.md` — Spec-Writing Mode Prompt
+### 2. `ralphLoop/PROMPT_specs.md` — Spec-Writing Mode Prompt
 
 Instructs Claude to collaboratively define specs from a JTBD (Job to Be Done). Rules:
 
@@ -80,7 +84,7 @@ Instructs Claude to collaboratively define specs from a JTBD (Job to Be Done). R
 
 Each spec follows a **template structure**: Summary, Context, Acceptance Criteria, Edge Cases, Out of Scope.
 
-### 3. `PROMPT_plan.md` — Planning Mode Prompt
+### 3. `ralphLoop/PROMPT_plan.md` — Planning Mode Prompt
 
 Instructs Claude to:
 - **Study** (not "read") `specs/*` to learn requirements using parallel subagents
@@ -91,7 +95,7 @@ Instructs Claude to:
 - **Do NOT implement anything** — plan only
 - Usually completes in 1-2 iterations
 
-### 4. `PROMPT_build.md` — Building Mode Prompt
+### 4. `ralphLoop/PROMPT_build.md` — Building Mode Prompt
 
 #### Phase Structure
 
@@ -147,7 +151,7 @@ These specific phrasings matter for Claude's behavior:
 - **"keep it up to date"** — prompts plan maintenance
 - **"resolve them or document them"** — handles discovered bugs
 
-### 5. `AGENTS.md` — Operational Guide
+### 5. `ralphLoop/AGENTS.md` — Operational Guide
 
 Loaded every iteration as deterministic context. **Must stay under ~60 lines** — bloat pollutes every future iteration's context window.
 
@@ -159,7 +163,7 @@ Contains:
 
 **Anti-pattern**: Do NOT put status updates, progress tracking, or changelogs in `AGENTS.md`. That goes in `IMPLEMENTATION_PLAN.md`. `AGENTS.md` is operational only — "how to build and test", not "what was built".
 
-### 6. `IMPLEMENTATION_PLAN.md` — Shared State
+### 6. `ralphLoop/IMPLEMENTATION_PLAN.md` — Shared State
 
 Starts as an empty file. Planning loop populates it. Build loop reads and updates it. This is the only coordination mechanism between loop iterations.
 
@@ -168,7 +172,7 @@ Starts as an empty file. Planning loop populates it. Build loop reads and update
 - Disposable: regenerate by re-running planning mode when stale/wrong
 - Prefer Markdown over JSON for token efficiency
 
-### 7. `specs/` Directory
+### 7. `ralphLoop/specs/` Directory
 
 One spec file per feature/concern. Each file describes ONE topic of concern.
 
@@ -218,13 +222,14 @@ Standard ignores for the project.
 
 ## Implementation Order
 
-1. Decide what you want the agent to build (the JTBD / project goal)
-2. Break each JTBD into **topics of concern** (one sentence without "and" each)
-3. Write spec files in `specs/` — one per topic (or use `PROMPT_specs.md` to generate them)
-4. Fill in `AGENTS.md` with build/test/lint commands (~60 lines max)
-5. Create `PROMPT_plan.md` and `PROMPT_build.md` with phased structure and escalating guardrails
-6. Create `loop.sh`
-7. Run `bash loop.sh plan` to generate the implementation plan (1-2 iterations)
-8. Review the plan, adjust specs if needed
-9. Run `bash loop.sh build` and observe from outside the loop
-10. Tune: adjust specs, guardrails, and `AGENTS.md` based on what you observe — then let the loop continue
+1. Create the `ralphLoop/` folder at the repo root
+2. Decide what you want the agent to build (the JTBD / project goal)
+3. Break each JTBD into **topics of concern** (one sentence without "and" each)
+4. Write spec files in `ralphLoop/specs/` — one per topic (or use `PROMPT_specs.md` to generate them)
+5. Fill in `ralphLoop/AGENTS.md` with build/test/lint commands (~60 lines max)
+6. Create `ralphLoop/PROMPT_plan.md` and `ralphLoop/PROMPT_build.md` with phased structure and escalating guardrails
+7. Create `ralphLoop/loop.sh`
+8. Run `bash ralphLoop/loop.sh plan` to generate the implementation plan (1-2 iterations)
+9. Review the plan, adjust specs if needed
+10. Run `bash ralphLoop/loop.sh build` and observe from outside the loop
+11. Tune: adjust specs, guardrails, and `ralphLoop/AGENTS.md` based on what you observe — then let the loop continue
