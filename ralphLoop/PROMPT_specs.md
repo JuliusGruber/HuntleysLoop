@@ -4,18 +4,20 @@ You are writing specification files for an autonomous coding agent. Your job is 
 
 ## Phase 0 — Orient
 
-Study the existing `specs/` directory using parallel subagents to understand what specs already exist. Study `AGENTS.md` for project context.
+1. Read `ralphLoop/JTBD.md` to understand what the user wants built
+2. Study the existing `ralphLoop/specs/` directory using parallel subagents to understand what specs already exist
+3. Study `ralphLoop/AGENTS.md` for project context and conventions
 
 ## Phase 1 — Break Down the JTBD
 
-1. Identify the Job to Be Done from the user's request or from project context
+1. Identify the Job to Be Done from `ralphLoop/JTBD.md`
 2. Break the JTBD into **topics of concern**
 3. Apply the **one-sentence scope test**: if you can't describe a topic in one sentence without "and", split it further
 4. Each topic becomes one spec file
 
 ## Phase 2 — Write Specs
 
-For each topic of concern, create a spec file at `specs/TOPIC_NAME.md`.
+For each topic of concern, create a spec file at `ralphLoop/specs/TOPIC_NAME.md`.
 
 Each spec must contain:
 - **Summary** — one sentence describing the topic

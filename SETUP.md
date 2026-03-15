@@ -1,12 +1,17 @@
-# Ralph Loop Setup
+# Ralph Loop Setup — Skill Instructions
 
-Instructions for setting up the Ralph Loop in a git repository. Create all files inside a `ralphLoop/` folder at the target repo root.
+You are an autonomous agent scaffolding the Ralph Loop into a target project. Execute each step below in order. Where you see `<!-- CUSTOMIZE -->` markers, adapt the content to the target project using information gathered in Step 0. Do NOT leave placeholder commands — detect and fill in real values.
 
-## Prerequisites
+## Step 0 — Analyze the target project
 
-- Claude CLI installed and authenticated
-- Target directory is a git repository
-- Run in a sandbox (Docker, E2B, Modal, Fly Sprites, Daytona, etc.) — the loop has full permissions
+Before creating any files, study the target project to gather information you will need for customization:
+
+1. **Detect language and framework** — look for `package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`, `Makefile`, `build.gradle`, `pom.xml`, `CMakeLists.txt`, `.csproj`, etc.
+2. **Map source directories** — identify where application source code lives (e.g., `src/`, `app/`, `lib/`, `packages/`, or root-level). Note the main source directory and any shared utilities directory.
+3. **Find build commands** — extract build, run, test, typecheck, and lint commands from the project's config files, scripts, or CI configuration.
+4. **Note conventions** — observe naming patterns, file organization, and coding conventions already in use.
+
+Keep this information ready — you will use it to customize `AGENTS.md` in Step 6.
 
 ## Step 1 — Create directory structure
 
@@ -17,21 +22,23 @@ ralphLoop/
 ├── PROMPT_build.md
 ├── PROMPT_specs.md
 ├── AGENTS.md
-├── IMPLEMENTATION_PLAN.md    (empty file)
-└── specs/                    (empty directory)
+├── JTBD.md                   (Job to Be Done — user fills this in)
+├── IMPLEMENTATION_PLAN.md    (empty file — planning loop populates it)
+└── specs/                    (empty directory — specs loop populates it)
 ```
 
 ## Step 2 — Create loop.sh
 
-Copy verbatim:
+Copy verbatim. Make executable with `chmod +x ralphLoop/loop.sh`.
 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODE="${1:-build}"          # "plan", "build", or "specs"
-MAX_ITERS="${2:-0}"         # 0 = infinite
+MODE="${1:-build}"                    # "plan", "build", or "specs"
+MAX_ITERS="${2:-0}"                   # 0 = infinite
+MODEL="${RALPH_MODEL:-opus}"          # override with RALPH_MODEL env var
 PROMPT_FILE="$SCRIPT_DIR/PROMPT_${MODE}.md"
 ITER=0
 
@@ -42,12 +49,12 @@ fi
 
 while :; do
   ITER=$((ITER + 1))
-  echo "=== Iteration $ITER (mode: $MODE) ==="
+  echo "=== Iteration $ITER (mode: $MODE, model: $MODEL) ==="
 
   cat "$PROMPT_FILE" | claude -p \
     --dangerously-skip-permissions \
     --output-format stream-json \
-    --model opus \
+    --model "$MODEL" \
     --verbose
 
   # Push after each iteration so work isn't only local
@@ -60,8 +67,6 @@ while :; do
 done
 ```
 
-Make executable: `chmod +x ralphLoop/loop.sh`
-
 ## Step 3 — Create PROMPT_plan.md
 
 Copy verbatim:
@@ -73,15 +78,15 @@ You are an autonomous planning agent. Your job is to study specs and source code
 
 ## Phase 0a — Study Specs
 
-Using parallel subagents (one per file, up to ~10 concurrent), study every file in `specs/` to understand the full scope of requirements. For small directories (< 5 files), read them directly without subagents.
+Using parallel subagents (one per file, up to ~10 concurrent), study every file in `ralphLoop/specs/` to understand the full scope of requirements. For small directories (< 5 files), read them directly without subagents.
 
 ## Phase 0b — Study Source Code
 
-Using parallel subagents, study the existing `src/` directory and any other source files to understand what is already built. Don't assume anything is missing — search first.
+Read `ralphLoop/AGENTS.md` for the project's source directory paths and conventions. Then, using parallel subagents, study the existing source directories to understand what is already built. Don't assume anything is missing — search first.
 
 ## Phase 0c — Read Current Plan
 
-Read `IMPLEMENTATION_PLAN.md` if it exists. Understand what has already been planned or completed.
+Read `ralphLoop/IMPLEMENTATION_PLAN.md` if it exists. Understand what has already been planned or completed.
 
 ## Phase 1 — Gap Analysis
 
@@ -102,7 +107,7 @@ Order tasks by:
 
 ## Phase 3 — Write Plan
 
-Write the prioritized task list to `IMPLEMENTATION_PLAN.md`. Each task should:
+Write the prioritized task list to `ralphLoop/IMPLEMENTATION_PLAN.md`. Each task should:
 - Be completable in a single agent iteration
 - Have a clear definition of done
 - Note any dependencies on other tasks
@@ -127,30 +132,30 @@ You are an autonomous building agent. Each iteration you pick one task, implemen
 
 ## Phase 0a — Study Specs
 
-Using parallel subagents (one per file, up to ~10 concurrent), study every file in `specs/` to understand requirements for the current work. For small directories (< 5 files), read them directly without subagents.
+Using parallel subagents (one per file, up to ~10 concurrent), study every file in `ralphLoop/specs/` to understand requirements for the current work. For small directories (< 5 files), read them directly without subagents.
 
 ## Phase 0b — Study Source Code
 
-Using parallel subagents, study the existing `src/` directory to understand what is already built. Don't assume not implemented — search the codebase first.
+Read `ralphLoop/AGENTS.md` for the project's source directory paths, build commands, and conventions. Then, using parallel subagents, study the existing source directories to understand what is already built. Don't assume not implemented — search the codebase first.
 
 ## Phase 0c — Read Plan
 
-Read `IMPLEMENTATION_PLAN.md` to understand the current prioritized task list, what's done, and what's next.
+Read `ralphLoop/IMPLEMENTATION_PLAN.md` to understand the current prioritized task list, what's done, and what's next.
 
 ## Phase 1 — Select Task
 
-Pick the **most important unfinished task** from `IMPLEMENTATION_PLAN.md`. Consider dependencies — don't pick a task whose prerequisites aren't done.
+Pick the **most important unfinished task** from `ralphLoop/IMPLEMENTATION_PLAN.md`. Consider dependencies — don't pick a task whose prerequisites aren't done.
 
 ## Phase 2 — Implement
 
 1. Investigate the relevant source code using parallel subagents before writing anything
 2. Implement the task completely — no placeholders, no stubs, no TODOs
 3. If functionality is missing then it's your job to add it
-4. Follow patterns established in `src/lib/` and documented in `AGENTS.md`
+4. Follow patterns documented in `ralphLoop/AGENTS.md`
 
 ## Phase 3 — Validate
 
-Run the validation commands from `AGENTS.md` using only 1 subagent for build/tests (serialized backpressure):
+Run the validation commands from `ralphLoop/AGENTS.md` using only 1 subagent for build/tests (serialized backpressure):
 - Build must pass
 - Tests must pass
 - Type checking must pass
@@ -160,8 +165,8 @@ If validation fails, fix the issue and re-validate. Do not commit broken code.
 
 ## Phase 4 — Commit and Update
 
-1. Update `IMPLEMENTATION_PLAN.md` — mark the task as done, note any discoveries or new tasks
-2. Update `AGENTS.md` with operational learnings if you discovered something useful (keep it under ~60 lines total)
+1. Update `ralphLoop/IMPLEMENTATION_PLAN.md` — mark the task as done, note any discoveries or new tasks
+2. Update `ralphLoop/AGENTS.md` with operational learnings if you discovered something useful (keep it under ~60 lines total)
 3. Create a git commit with a descriptive message that captures the **why**
 4. Create a semver git tag (`0.0.x`) if the build is clean
 5. Exit cleanly so the loop can restart with a fresh context
@@ -176,19 +181,19 @@ If validation fails, fix the issue and re-validate. Do not commit broken code.
 
 9999. Add extra logging if needed for debugging. Remove it when the issue is resolved.
 
-99999. Keep `IMPLEMENTATION_PLAN.md` up to date with learnings, discovered tasks, and current state.
+99999. Keep `ralphLoop/IMPLEMENTATION_PLAN.md` up to date with learnings, discovered tasks, and current state.
 
-999999. Update `AGENTS.md` with operational learnings — but keep it brief. ~60 lines max. Status and progress go in `IMPLEMENTATION_PLAN.md`, never in `AGENTS.md`.
+999999. Update `ralphLoop/AGENTS.md` with operational learnings — but keep it brief. ~60 lines max. Status and progress go in `ralphLoop/IMPLEMENTATION_PLAN.md`, never in `ralphLoop/AGENTS.md`.
 
-9999999. Resolve bugs or document them — even if unrelated to your current task. If you find a bug, either fix it or add it to `IMPLEMENTATION_PLAN.md`.
+9999999. Resolve bugs or document them — even if unrelated to your current task. If you find a bug, either fix it or add it to `ralphLoop/IMPLEMENTATION_PLAN.md`.
 
 99999999. If functionality is missing then it's your job to add it. No placeholders, no stubs, no "TODO: implement later". Implement completely or don't touch it.
 
-999999999. Periodically clean completed items from `IMPLEMENTATION_PLAN.md` to keep it focused.
+999999999. Periodically clean completed items from `ralphLoop/IMPLEMENTATION_PLAN.md` to keep it focused.
 
 9999999999. If you find spec inconsistencies, resolve them using an Opus subagent with Ultrathink. Document the resolution.
 
-99999999999. Status and progress tracking goes in `IMPLEMENTATION_PLAN.md`, never in `AGENTS.md`. Keep `AGENTS.md` operational only.
+99999999999. Status and progress tracking goes in `ralphLoop/IMPLEMENTATION_PLAN.md`, never in `ralphLoop/AGENTS.md`. Keep `ralphLoop/AGENTS.md` operational only.
 
 ## Subagent Strategy
 
@@ -210,18 +215,20 @@ You are writing specification files for an autonomous coding agent. Your job is 
 
 ## Phase 0 — Orient
 
-Study the existing `specs/` directory using parallel subagents to understand what specs already exist. Study `AGENTS.md` for project context.
+1. Read `ralphLoop/JTBD.md` to understand what the user wants built
+2. Study the existing `ralphLoop/specs/` directory using parallel subagents to understand what specs already exist
+3. Study `ralphLoop/AGENTS.md` for project context and conventions
 
 ## Phase 1 — Break Down the JTBD
 
-1. Identify the Job to Be Done from the user's request or from project context
+1. Identify the Job to Be Done from `ralphLoop/JTBD.md`
 2. Break the JTBD into **topics of concern**
 3. Apply the **one-sentence scope test**: if you can't describe a topic in one sentence without "and", split it further
 4. Each topic becomes one spec file
 
 ## Phase 2 — Write Specs
 
-For each topic of concern, create a spec file at `specs/TOPIC_NAME.md`.
+For each topic of concern, create a spec file at `ralphLoop/specs/TOPIC_NAME.md`.
 
 Each spec must contain:
 - **Summary** — one sentence describing the topic
@@ -242,59 +249,89 @@ Each spec must contain:
 
 ## Step 6 — Create AGENTS.md
 
-<!-- CUSTOMIZE: this is the only file that must be adapted to the target project -->
+This is the **only file that must be fully adapted** to the target project. Use the information gathered in Step 0 to fill in every section with real commands and paths. Do NOT leave placeholder comments or `<!-- CUSTOMIZE -->` markers in the final file. If the project has no command for a category (e.g., no type checker), omit that line entirely. Must stay under ~60 lines total.
 
-Create `ralphLoop/AGENTS.md` and fill in the project's actual build, test, typecheck, and lint commands. Must stay under ~60 lines. This is the backpressure mechanism — without real commands, the loop cannot validate its work.
-
-Template (adapt the `CUSTOMIZE` sections to the target project):
+Template structure (fill in all sections using Step 0 findings):
 
     # AGENTS.md — Operational Guide
 
+    ## Source Directories
+
+    <!-- CUSTOMIZE: list the project's actual source directories from Step 0 -->
+    - Main source: `src/`
+    - Shared utilities: `src/lib/`
+
     ## Build & Run
 
-    <!-- CUSTOMIZE: replace with your project's build and run commands -->
+    <!-- CUSTOMIZE: fill with actual build and run commands from Step 0 -->
     ```bash
     # Build
-    # <your build command>
+    npm run build
 
     # Run
-    # <your run command>
+    npm run dev
     ```
 
     ## Validation
 
-    <!-- CUSTOMIZE: replace with your project's test, typecheck, and lint commands -->
+    <!-- CUSTOMIZE: fill with actual test, typecheck, and lint commands from Step 0 -->
     <!-- These commands are your backpressure — they reject bad work -->
     ```bash
     # Tests
-    # <your test command>
+    npm test
 
     # Type checking
-    # <your typecheck command>
+    npx tsc --noEmit
 
     # Linting
-    # <your lint command>
+    npm run lint
     ```
 
     ## Operational Notes
 
-    <!-- Agent-discovered learnings go here. Keep this section brief. -->
+    <!-- Start empty. Agent-discovered learnings go here during loop execution. -->
 
     ## Codebase Patterns
 
-    <!-- CUSTOMIZE: replace with your project's conventions -->
+    <!-- CUSTOMIZE: fill with actual conventions observed in Step 0 -->
     - One concern per file
-    - Shared utilities go in `src/lib/`
 
-## Step 7 — Create empty IMPLEMENTATION_PLAN.md
+## Step 7 — Create JTBD.md
+
+Create `ralphLoop/JTBD.md` with placeholder content for the user to fill in before running specs mode:
+
+```markdown
+# Job to Be Done
+
+<!-- Describe WHAT you want built here. Focus on outcomes, not implementation. -->
+<!-- Example: "Users can sign up, log in, and manage their profile." -->
+<!-- The specs loop will break this into detailed behavioral specs. -->
+```
+
+## Step 8 — Create empty IMPLEMENTATION_PLAN.md
 
 Create an empty file at `ralphLoop/IMPLEMENTATION_PLAN.md`. The planning loop will populate it.
 
-## Step 8 — Post-scaffold
+## Step 9 — Verify setup
 
-After creating all files:
+Confirm the scaffolding is correct:
 
-1. **Customize AGENTS.md** — detect the project's build system and fill in the actual build/test/lint commands. Look for `package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`, `Makefile`, etc.
-2. **Ask the user** for their Job to Be Done (JTBD) — what should the loop build?
-3. **Run planning mode** first: `bash ralphLoop/loop.sh plan 2`
-4. Review the generated `IMPLEMENTATION_PLAN.md`, then run build mode: `bash ralphLoop/loop.sh build`
+1. All files from Step 1 exist in `ralphLoop/`
+2. `ralphLoop/loop.sh` is executable (`chmod +x`)
+3. `ralphLoop/AGENTS.md` contains **real commands** — not placeholder comments. If any section still has `<!-- CUSTOMIZE -->` or `# <your ... command>`, go back and fill it in using Step 0 findings
+4. All `ralphLoop/PROMPT_*.md` files exist and reference `ralphLoop/` paths
+5. `ralphLoop/specs/` directory exists
+
+## Step 10 — Tell the user what to do next
+
+After scaffolding is complete, tell the user:
+
+1. **Edit `ralphLoop/JTBD.md`** — describe what you want the loop to build
+2. **Run specs mode**: `bash ralphLoop/loop.sh specs 2` — generates behavioral specs from the JTBD
+3. **Review specs** in `ralphLoop/specs/` — adjust if needed
+4. **Run planning mode**: `bash ralphLoop/loop.sh plan 2` — generates implementation plan
+5. **Review plan** in `ralphLoop/IMPLEMENTATION_PLAN.md` — adjust if needed
+6. **Run build mode**: `bash ralphLoop/loop.sh build` — autonomously implements until done
+7. **Override model** if needed: `RALPH_MODEL=sonnet bash ralphLoop/loop.sh build`
+
+**Important**: Run the loop in a sandbox environment (Docker, E2B, Modal, Daytona, etc.) — it has full permissions via `--dangerously-skip-permissions`.
