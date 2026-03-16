@@ -26,6 +26,12 @@ Each spec must contain:
 - **Edge Cases** — boundary conditions and error scenarios
 - **Out of Scope** — what this spec intentionally does NOT cover
 
+## Phase 3 — Commit
+
+1. Stage all new and modified spec files
+2. Create a git commit with a descriptive message summarizing what specs were written or updated
+3. Exit cleanly so the loop can restart with a fresh context
+
 ## Rules
 
 9. Specify **WHAT** (outcomes), never **HOW** (implementation). A different team on a different stack must be able to implement from the spec alone.
