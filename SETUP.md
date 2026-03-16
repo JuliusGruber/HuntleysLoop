@@ -24,7 +24,10 @@ ralphLoop/
 ├── AGENTS.md
 ├── JTBD.md                   (Job to Be Done — user fills this in)
 ├── IMPLEMENTATION_PLAN.md    (empty file — planning loop populates it)
-└── specs/                    (empty directory — specs loop populates it)
+├── specs/                    (empty directory — specs loop populates it)
+└── documentation/
+    ├── running-the-ralph-loop.md
+    └── ralph-loop-design.md
 ```
 
 ## Step 2 — Create loop.sh
@@ -324,7 +327,272 @@ Create `ralphLoop/JTBD.md` with placeholder content for the user to fill in befo
 
 Create an empty file at `ralphLoop/IMPLEMENTATION_PLAN.md`. The planning loop will populate it.
 
-## Step 9 — Verify setup
+## Step 9 — Create ralphLoop/documentation/running-the-ralph-loop.md
+
+Copy verbatim:
+
+```markdown
+# Running the Ralph Loop
+
+After scaffolding the `ralphLoop/` directory (via the setup skill or by pasting the SETUP.md prompt), follow this guide to start and operate the loop.
+
+---
+
+## Prerequisites
+
+- **Claude CLI** installed and authenticated (`claude --version` to verify)
+- **Git repository** initialized with at least one commit
+- **Sandbox environment** (Docker, E2B, Modal, Daytona, etc.) — the loop runs with `--dangerously-skip-permissions`, so never run it on an uncontained machine
+
+## Quick Start
+
+\`\`\`bash
+# 1. Describe what you want built
+#    Open ralphLoop/JTBD.md and replace the placeholder with your Job to Be Done.
+
+# 2. Generate specs from the JTBD
+bash ralphLoop/loop.sh specs 2
+
+# 3. Review the generated specs in ralphLoop/specs/ — edit as needed
+
+# 4. Generate an implementation plan
+bash ralphLoop/loop.sh plan 2
+
+# 5. Review ralphLoop/IMPLEMENTATION_PLAN.md — edit as needed
+
+# 6. Build autonomously
+bash ralphLoop/loop.sh build
+\`\`\`
+
+## Loop Modes
+
+The loop script (`ralphLoop/loop.sh`) accepts two arguments:
+
+\`\`\`
+bash ralphLoop/loop.sh <mode> [max_iterations]
+\`\`\`
+
+| Mode | What it does | Typical iterations |
+|---|---|---|
+| `specs` | Reads `JTBD.md` and produces behavioral spec files in `ralphLoop/specs/` | 1-2 |
+| `plan` | Reads specs and source code, writes a prioritized task list to `IMPLEMENTATION_PLAN.md` | 1-2 |
+| `build` | Picks the next task from the plan, implements it, validates, commits, and exits so the next iteration starts fresh | Until all tasks are done |
+
+If `max_iterations` is omitted or `0`, the loop runs indefinitely (useful for `build` mode).
+
+## Choosing a Model
+
+The loop defaults to Opus. Override with the `RALPH_MODEL` environment variable:
+
+\`\`\`bash
+# Use Sonnet for faster, cheaper iterations
+RALPH_MODEL=sonnet bash ralphLoop/loop.sh build
+
+# Use Opus (default) for maximum capability
+RALPH_MODEL=opus bash ralphLoop/loop.sh build
+\`\`\`
+
+## The Workflow in Detail
+
+### 1. Write Your JTBD
+
+Edit `ralphLoop/JTBD.md` to describe **what** you want built. Focus on outcomes, not implementation details.
+
+Good: "Users can sign up with email, log in, reset their password, and view their profile."
+Bad: "Create a React component using NextAuth with Prisma adapter..."
+
+### 2. Run Specs Mode
+
+\`\`\`bash
+bash ralphLoop/loop.sh specs 2
+\`\`\`
+
+The agent reads your JTBD and breaks it into one spec file per topic of concern in `ralphLoop/specs/`. Each spec contains a summary, context, acceptance criteria, edge cases, and out-of-scope notes.
+
+Review the generated specs. This is your best leverage point — fixing a spec now is much cheaper than fixing code later.
+
+### 3. Run Planning Mode
+
+\`\`\`bash
+bash ralphLoop/loop.sh plan 2
+\`\`\`
+
+The agent studies the specs and your existing source code, performs gap analysis, and writes a prioritized task list to `ralphLoop/IMPLEMENTATION_PLAN.md`. Tasks are ordered by dependencies, then foundational work, then core functionality.
+
+Review the plan. Reorder or remove tasks if needed — the build loop trusts this file.
+
+### 4. Run Build Mode
+
+\`\`\`bash
+bash ralphLoop/loop.sh build
+\`\`\`
+
+Each iteration:
+
+1. Reads specs, source code, and the current plan
+2. Picks the most important unfinished task
+3. Implements it completely (no stubs or TODOs)
+4. Validates — build, tests, typecheck, lint must all pass
+5. Commits, tags the clean build, and pushes
+6. Updates the plan, then exits for a fresh context
+
+The loop continues until all tasks are done or you stop it with `Ctrl+C`.
+
+### 5. Monitor Progress
+
+Watch the terminal output, or check progress between iterations:
+
+\`\`\`bash
+# See what's been done and what's next
+cat ralphLoop/IMPLEMENTATION_PLAN.md
+
+# See commit history
+git log --oneline
+
+# See tagged builds
+git tag
+\`\`\`
+
+## Restarting and Recovering
+
+| Situation | What to do |
+|---|---|
+| Plan is wrong or stale | Re-run `bash ralphLoop/loop.sh plan 2` — it regenerates from specs |
+| Agent went off track | Edit `IMPLEMENTATION_PLAN.md` to correct priorities, then resume `build` |
+| Want to change scope | Edit `JTBD.md`, re-run `specs`, then `plan`, then `build` |
+| Loop stopped mid-iteration | Just restart `bash ralphLoop/loop.sh build` — it reads the plan and picks up where it left off |
+| Build keeps failing | Check `ralphLoop/AGENTS.md` — the validation commands must match your project |
+
+## Tips
+
+- **You sit outside the loop.** Your job is tuning specs, the plan, and `AGENTS.md` — not writing code.
+- **Fresh context every iteration is a feature.** The agent reads the plan from disk each time, so it never accumulates stale assumptions.
+- **The plan is disposable.** Wrong plan? Re-run planning mode. It's cheap (1-2 iterations).
+- **Keep `AGENTS.md` under ~60 lines.** It's loaded every iteration — bloat wastes context.
+- **Review specs carefully.** Spec quality is the highest-leverage input to the entire loop.
+```
+
+## Step 10 — Create ralphLoop/documentation/ralph-loop-design.md
+
+Copy verbatim:
+
+```markdown
+# Ralph Loop — Design Reference
+
+Design rationale, principles, and prompt engineering patterns behind the Ralph Loop. For setup instructions, see `SETUP.md` at the repo root.
+
+---
+
+## Key Design Decisions
+
+| Decision | Choice | Rationale |
+|---|---|---|
+| Orchestration | Bash `while` loop | No framework needed. The loop IS the agent. |
+| State management | `IMPLEMENTATION_PLAN.md` on disk | Survives context resets. Human-readable. |
+| Context loading | `cat PROMPT.md \| claude -p` | Deterministic — same files loaded every time. |
+| Output format | `--output-format stream-json` | Parseable output for monitoring and debugging. |
+| Backpressure | Tests + typecheck + lint in `AGENTS.md` | Rejects bad work automatically. |
+| Task granularity | 1 task per iteration | Keeps context usage in the "smart zone" (40-60%). |
+| Self-correction | Loop iterations | Wrong? Next iteration reads updated plan and fixes it. |
+| Permissions | `--dangerously-skip-permissions` | Required for autonomy — run in a sandbox! |
+| Subagent fan-out | Up to ~10 concurrent for reads, 1 for builds | Maximizes throughput within Pro-tier rate limits while serializing backpressure. |
+| Format preference | Markdown over JSON | Better token efficiency for LLM context. |
+| Remote sync | `git push` after each iteration | Work isn't only local; survives sandbox loss. |
+
+---
+
+## Critical Principles
+
+1. **You sit OUTSIDE the loop**, not inside it. Your job is tuning guardrails, specs, and `AGENTS.md` — not coding.
+2. **Fresh context every iteration** is a feature, not a bug. Prevents context pollution and keeps the agent in the "smart zone."
+3. **The plan is disposable.** Wrong plan? Re-run planning mode. Cheap (1-2 iterations).
+4. **"Don't assume not implemented"** — the single most important guardrail. Without it, the agent rewrites existing code.
+5. **Run in a sandbox.** Docker, Fly Sprites, E2B, Modal, Cloudflare Sandboxes, Daytona — anything isolated. The agent has full permissions. It's not if it gets popped, it's when — control the blast radius.
+6. **Specify WHAT, not HOW.** Specs describe outcomes. The agent decides implementation. Prescribing approach wastes context and constrains the agent unnecessarily.
+7. **AGENTS.md is operational only.** Keep it under ~60 lines. Status and progress go in `IMPLEMENTATION_PLAN.md`. Bloated `AGENTS.md` pollutes every future iteration.
+8. **The main agent is a scheduler.** Expensive work (reads, searches, reasoning) fans out to subagents. Build/test backpressure is serialized to one subagent.
+
+---
+
+## Prompt Engineering Patterns
+
+### Specific Language Patterns
+
+These phrasings matter for Claude's behavior:
+
+- **"study"** (not "read" or "look at") — triggers deeper analysis
+- **"don't assume not implemented"** — the Achilles' heel guardrail; forces code search before writing
+- **"using parallel subagents"** / **"up to ~10 concurrent"** — triggers parallel tool use within Pro-tier limits
+- **"only 1 subagent for build/tests"** — backpressure control
+- **"Ultrathink"** — triggers extended reasoning mode
+- **"capture the why"** — prompts documentation of reasoning
+- **"keep it up to date"** — prompts plan maintenance
+- **"resolve them or document them"** — handles discovered bugs
+
+### Guardrails (Escalating Priority via `999...` Numbering)
+
+Guardrails use escalating `9`, `99`, `999`, ... numbering in the prompt to signal increasing criticality to the model:
+
+1. **"capture the why"** — document reasoning, not just what changed
+2. **Single sources of truth** — no migrations/adapters; fix unrelated test failures
+3. **Create git tags** for clean builds (semver `0.0.x`)
+4. **Add extra logging** if needed for debugging
+5. **"keep it up to date"** — `IMPLEMENTATION_PLAN.md` must reflect current state with learnings
+6. **Update `AGENTS.md`** with operational learnings — but keep it brief (~60 lines max)
+7. **Document bugs** even if unrelated to current work — "resolve them or document them"
+8. **"if functionality is missing then it's your job to add it"** — no placeholders or stubs, implement completely
+9. **Periodically clean** completed items from `IMPLEMENTATION_PLAN.md`
+10. **Fix spec inconsistencies** using Opus subagent with Ultrathink
+11. **Status/progress goes in `IMPLEMENTATION_PLAN.md`**, never in `AGENTS.md`
+
+### Subagent Strategy
+
+The main agent acts as a scheduler:
+
+- Fan out **parallel subagents** for file reads, searches, and investigation — one per file, up to ~10 concurrent (Pro subscription rate limits apply)
+- For trivially small directories (< 5 files), skip subagents and read directly
+- **Only 1 subagent for build/tests** — serialized backpressure prevents parallel builds from masking failures
+- Use **Opus subagents with "Ultrathink" sparingly** for complex reasoning (debugging, architectural decisions)
+
+### Phase Structure (Build Mode)
+
+Prompts use a phased structure:
+- **Phase 0a/0b/0c** — Orient (study specs, study source code, read current plan) using parallel subagents
+- **Phases 1-4** — Execute (select task, implement, validate, commit)
+
+---
+
+## File Roles
+
+### AGENTS.md
+
+Loaded every iteration as deterministic context. **Must stay under ~60 lines** — bloat pollutes every future iteration's context window.
+
+Contains: Build & Run, Validation, Operational Notes, Codebase Patterns.
+
+**Anti-pattern**: Do NOT put status updates, progress tracking, or changelogs in `AGENTS.md`. That goes in `IMPLEMENTATION_PLAN.md`. `AGENTS.md` is operational only — "how to build and test", not "what was built".
+
+### IMPLEMENTATION_PLAN.md
+
+Starts as an empty file. Planning loop populates it. Build loop reads and updates it. This is the only coordination mechanism between loop iterations.
+
+- No pre-specified template — let the LLM manage the format
+- Self-correcting: build mode can update priorities and add discovered tasks
+- Disposable: regenerate by re-running planning mode when stale/wrong
+- Prefer Markdown over JSON for token efficiency
+
+### specs/
+
+One spec file per feature/concern. Each file describes ONE topic of concern.
+
+- **One-sentence scope test**: if you can't describe the topic in one sentence without "and", split it
+- **Specify WHAT, not HOW**: describe desired outcomes and behavioral acceptance criteria, not implementation approach
+- **No code blocks**: specs are behavioral, not technical
+- **Acceptance criteria are observable outcomes**: "user can see X" not "render X component"
+- **Relationships**: 1 JTBD → multiple topics → 1 spec per topic → many tasks per spec
+```
+
+## Step 11 — Verify setup
 
 Confirm the scaffolding is correct:
 
@@ -333,8 +601,10 @@ Confirm the scaffolding is correct:
 3. `ralphLoop/AGENTS.md` contains **real commands** — not placeholder comments. If any section still has `<!-- CUSTOMIZE -->` or `# <your ... command>`, go back and fill it in using Step 0 findings
 4. All `ralphLoop/PROMPT_*.md` files exist and reference `ralphLoop/` paths
 5. `ralphLoop/specs/` directory exists
+6. `ralphLoop/documentation/running-the-ralph-loop.md` exists
+7. `ralphLoop/documentation/ralph-loop-design.md` exists
 
-## Step 10 — Tell the user what to do next
+## Step 12 — Tell the user what to do next
 
 After scaffolding is complete, tell the user:
 
