@@ -38,6 +38,12 @@ Write the prioritized task list to `ralphLoop/IMPLEMENTATION_PLAN.md`. Each task
 - Have a clear definition of done
 - Note any dependencies on other tasks
 
+## Phase 4 — Commit
+
+1. Stage all new and modified plan files
+2. Create a git commit with a descriptive message summarizing the planning work done
+3. Exit cleanly so the loop can restart with a fresh context
+
 ## Rules
 
 9. Capture the **why** — document reasoning behind prioritization decisions.
