@@ -6,6 +6,12 @@ Paste this into any Claude Code conversation to scaffold an autonomous Ralph Loo
 
 Claude fetches `SETUP.md`, analyzes your project, scaffolds a `ralphLoop/` directory, and fills in your actual build/test/lint commands. One message, no files to copy.
 
+**Beads variant** (if you want a `bd`-backed issue graph instead of a markdown plan; requires the [`bd` CLI](https://github.com/steveyegge/beads) installed):
+
+> Fetch https://raw.githubusercontent.com/JuliusGruber/HuntleysLoop/main/SETUP_BEADS.md and follow every step to scaffold a beads-driven Ralph Loop in this project.
+
+This scaffolds a `ralphLoopBeads/` directory and runs `bd init`. The two tracks coexist — pick whichever fits your workflow.
+
 ## What happens
 
 `SETUP.md` is self-contained — all templates inline, 10 steps, verification at the end. Claude will:
@@ -38,12 +44,18 @@ Then run `/setup-ralph-loop` in Claude Code.
 
 ## What's in this repo
 
+This repo ships two parallel scaffold tracks — the markdown track (`SETUP.md` → `ralphLoop/` with `IMPLEMENTATION_PLAN.md`) and the beads track (`SETUP_BEADS.md` → `ralphLoopBeads/` with a `bd` issue graph). Pick whichever fits your workflow; they coexist.
+
 | File | Purpose |
 |---|---|
 | `SETUP.md` | Self-contained setup instructions with all templates inline |
 | `skills/setup-ralph-loop.md` | Claude Code slash command — copy to enable `/setup-ralph-loop` |
 | `ralphLoop/` | Reference example (not used during setup — templates come from `SETUP.md`) |
-| `documentation/ralph-loop-design.md` | Design rationale and prompt engineering patterns |
+| `documentation/ralph-loop-design.md` | Design rationale and prompt engineering patterns (markdown track) |
+| `SETUP_BEADS.md` | Self-contained setup instructions for the beads track, with all templates inline |
+| `skills/setup-ralph-loop-beads.md` | Claude Code slash command — copy to enable `/setup-ralph-loop-beads` |
+| `ralphLoopBeads/` | Reference example for the beads track (no real `.beads/` shipped — created by `bd init` at scaffold time) |
+| `documentation/ralph-loop-beads-design.md` | Design rationale for the beads track |
 
 ## Requirements
 
