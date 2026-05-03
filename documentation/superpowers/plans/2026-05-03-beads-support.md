@@ -8,7 +8,7 @@
 
 **Tech Stack:** Bash, Markdown, Claude Code skill format (`---` frontmatter), `bd` CLI (beads). No application source code, no test framework — this is a documentation/scaffold-template change.
 
-**Authoritative source:** `docs/superpowers/specs/2026-05-03-beads-support-design.md`. Where this plan and the spec disagree, the spec wins; flag the discrepancy.
+**Authoritative source:** `documentation/superpowers/specs/2026-05-03-beads-support-design.md`. Where this plan and the spec disagree, the spec wins; flag the discrepancy.
 
 **Hard constraint:** The existing markdown track must be byte-identical after these tasks. The list of files that MUST NOT be touched: `SETUP.md`, all of `ralphLoop/`, `skills/setup-ralph-loop.md`, `.claude/skills/setup-ralph-loop/SKILL.md`, `documentation/ralph-loop-design.md`, `CLAUDE.md`. The verification task at the end enforces this.
 
@@ -1679,7 +1679,7 @@ If no fixes were needed, no commit. The plan is complete.
 
 ## Self-Review Notes (author's pre-handoff check)
 
-**Spec coverage:** Walked through every section of `docs/superpowers/specs/2026-05-03-beads-support-design.md`:
+**Spec coverage:** Walked through every section of `documentation/superpowers/specs/2026-05-03-beads-support-design.md`:
 
 - Section 2 Goals — covered: one-liner (Task 10), self-contained setup (Task 8), markdown track untouched (verification Task 11 Step 1), beads-as-source-of-truth (no `IMPLEMENTATION_PLAN.md` anywhere in `ralphLoopBeads/`), specs stay markdown (Task 3 + Step 5 of `SETUP_BEADS.md`).
 - Section 3 file inventory — all 12 new files / 1 modified file are tasks. The reference example's `.beads/` row in the spec table is intentionally NOT created (documented in Task 9 design doc).
@@ -1700,7 +1700,7 @@ If no fixes were needed, no commit. The plan is complete.
 
 ## Execution Handoff
 
-Plan complete and saved to `docs/superpowers/plans/2026-05-03-beads-support.md`. Two execution options:
+Plan complete and saved to `documentation/superpowers/plans/2026-05-03-beads-support.md`. Two execution options:
 
 **1. Subagent-Driven (recommended)** — I dispatch a fresh subagent per task, review between tasks, fast iteration. Best fit when each task is self-contained and verifiable on its own (true here — every task ends with a commit).
 
