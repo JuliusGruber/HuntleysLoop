@@ -251,3 +251,23 @@ On a fresh empty git repo:
 - Multi-claimant / parallel-loop coordination beyond what beads provides.
 - Auto-installing `bd` from `SETUP_BEADS.md`.
 - Reconciling-style plan mode (closing issues that no longer match a spec automatically). Append-only is the chosen model.
+
+## 9. Where `bd` calls run
+
+**Claude (the agent) issues every `bd` command. `loop.sh` never calls `bd`.**
+
+This is a load-bearing architectural principle, stated explicitly to prevent drift during implementation:
+
+- `loop.sh` is mode-agnostic. It runs `cat PROMPT_<mode>.md | claude -p --dangerously-skip-permissions ...` per iteration and `git push` (and, for the beads track, `git pull --rebase`) around it. It does not call `bd`. It does not parse agent stdout. It does not decide what to file or close.
+- The agent reads the active `PROMPT_*.md` and invokes `bd create`, `bd dep add`, `bd ready --json`, `bd list --json`, `bd update --claim`, `bd close`, `bd show`, etc. through its own shell/Bash tool calls. The `PROMPT_*.md` files are the only source of truth for which `bd` calls happen.
+- This mirrors the existing markdown track exactly: `loop.sh` does not write `IMPLEMENTATION_PLAN.md` — the agent does. The beads track preserves the same separation of concerns.
+
+### Consequences
+
+1. **Tuning happens by editing PROMPT files.** There is no orchestrator-level safety net. If the plan-mode prompt is wrong, the agent will file wrong issues. This is the same property the existing track has and is consistent with the "the loop IS the agent" principle from `documentation/ralph-loop-design.md`.
+2. **`bd` calls inherit the agent's permissions.** The loop runs Claude with `--dangerously-skip-permissions`. Sandboxing the loop is **suggested** (Docker, E2B, Modal, Daytona, etc.) as a way to control blast radius, but is not enforced or treated as a hard requirement by this track. The README and `SETUP_BEADS.md` should phrase it as a recommendation, not a "must." Users running on disposable VMs, dedicated dev machines, or with their own confidence in the prompts can opt out.
+3. **No parsing logic in `loop.sh`.** We deliberately do not scrape stdout for `bd-...` IDs, validate transitions, or otherwise couple the orchestrator to beads' output format. Doing so would break the "loop is the agent" property and bake beads into a script that is otherwise mode-agnostic.
+
+### Rejected alternative
+
+`loop.sh` itself shelling out to `bd`: e.g. picking the next ready issue, passing its ID into the prompt, then running `bd close` after based on the agent's exit status. Pro: stronger guarantee that lifecycle transitions actually happen. Con: bakes beads into the orchestrator, loses the agent-in-charge-end-to-end property, and contradicts the markdown track's existing design. Rejected.
