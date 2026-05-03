@@ -867,7 +867,7 @@ The added `git pull --rebase` line keeps `.beads/` synchronized when multiple cl
 
 Copy verbatim:
 
-```markdown
+````markdown
 # Planning Mode (Beads)
 
 You are an autonomous planning agent. Your job is to study specs and source code, perform gap analysis, and append new issues to the beads issue graph. You do NOT implement anything. You do NOT close, delete, or reopen issues — that is build mode's job. Plan mode is strictly **append-only**.
@@ -884,9 +884,9 @@ Read `ralphLoopBeads/AGENTS.md` for the project's source directory paths and con
 
 First, sanity-check that beads is initialized. Run:
 
-\`\`\`
+```
 bd ready --json
-\`\`\`
+```
 
 If it errors (e.g. "no beads database found"), halt with this message and exit:
 
@@ -894,10 +894,10 @@ If it errors (e.g. "no beads database found"), halt with this message and exit:
 
 Then read the current state of the graph:
 
-\`\`\`
+```
 bd ready --json
 bd list --json
-\`\`\`
+```
 
 Understand what is already planned (open), what is in progress, and what is closed. Do NOT assume tasks are missing — they may already exist as open or in-progress issues.
 
@@ -929,17 +929,17 @@ Order by:
 
 For each missing task, run:
 
-\`\`\`
+```
 bd create "Short title" -p N -d "Description with definition of done"
-\`\`\`
+```
 
 Capture the returned issue IDs.
 
 After all issues are created, link dependencies:
 
-\`\`\`
+```
 bd dep add <child-id> <parent-id>
-\`\`\`
+```
 
 Each issue should:
 - Be completable in a single agent iteration
@@ -961,13 +961,13 @@ Print a summary to stdout:
 9999. Tasks must be scoped small enough for one iteration — if a task feels large, split it into multiple issues with `bd dep add` linking them.
 99999. Do NOT implement anything. Planning only.
 999999. Prefer Markdown in issue descriptions. No JSON.
-```
+````
 
 ## Step 4 — Create PROMPT_build.md
 
 Copy verbatim:
 
-```markdown
+````markdown
 # Building Mode (Beads)
 
 You are an autonomous building agent. Each iteration you pick one issue from the beads graph, implement it completely, validate it, close the issue with a reason, and commit. Then you exit so the next iteration starts with a fresh context.
@@ -984,9 +984,9 @@ Read `ralphLoopBeads/AGENTS.md` for the project's source directory paths, build 
 
 First, sanity-check that beads is initialized:
 
-\`\`\`
+```
 bd ready --json
-\`\`\`
+```
 
 If it errors (e.g. "no beads database found"), halt with this message and exit:
 
@@ -994,31 +994,31 @@ If it errors (e.g. "no beads database found"), halt with this message and exit:
 
 Then check for in-progress claims **you** (this loop) already own — they represent a previous iteration that crashed mid-task:
 
-\`\`\`
+```
 bd list --status in_progress --json
-\`\`\`
+```
 
 If any in-progress issues exist that this loop claimed in a prior iteration, **resume those first**. Only after the in-progress set is empty do you query ready work:
 
-\`\`\`
+```
 bd ready --json
-\`\`\`
+```
 
 If `bd ready --json` returns `[]` and no in-progress issues exist, log `No ready work — exiting` to stdout and `exit 0`. The bash loop will spin; the user runs plan mode (or closes blockers manually) to unstick.
 
 Otherwise, pick the highest-priority issue (lowest `-p` number) you can fully complete this iteration. Get full context:
 
-\`\`\`
+```
 bd show <id>
-\`\`\`
+```
 
 ## Phase 1 — Claim the Task
 
 Take ownership of the chosen issue:
 
-\`\`\`
+```
 bd update <id> --claim
-\`\`\`
+```
 
 ## Phase 2 — Implement
 
@@ -1040,14 +1040,14 @@ If validation fails, fix the issue and re-validate. Do not commit broken code. T
 ## Phase 4 — Close, Commit, and Update
 
 1. Close the beads issue with a reason that captures the **why**:
-   \`\`\`
+   ```
    bd close <id> --reason "<one-line summary suitable for a commit message>"
-   \`\`\`
+   ```
 2. Update `ralphLoopBeads/AGENTS.md` with operational learnings if you discovered something useful (keep it under ~60 lines total).
 3. Stage `.beads/` together with the code paths you changed:
-   \`\`\`
+   ```
    git add .beads/ <code-paths>
-   \`\`\`
+   ```
 4. Create a git commit with a descriptive message that captures the **why**.
 5. Create a semver git tag (`0.0.x`) if the build is clean.
 6. Exit cleanly so the loop can restart with a fresh context.
@@ -1083,7 +1083,7 @@ If validation fails, fix the issue and re-validate. Do not commit broken code. T
 - For trivially small directories (< 5 files), skip subagents and read directly
 - Use **only 1 subagent for build/tests** — serialized backpressure prevents parallel builds from masking failures
 - Use **Opus subagents with Ultrathink** sparingly for complex reasoning, debugging, and architectural decisions
-```
+````
 
 ## Step 5 — Create PROMPT_specs.md
 
@@ -1261,7 +1261,7 @@ After scaffolding is complete, tell the user:
 **Sandboxing (recommended):** the loop runs Claude with `--dangerously-skip-permissions`, which means every `bd` call and every shell command also runs unsandboxed. Running the loop in an isolated environment (Docker, E2B, Modal, Daytona, or a disposable VM) is strongly recommended to control blast radius. It is not strictly required — users on dedicated dev machines who trust their prompts may opt out — but it is the safe default.
 `````
 
-> **Note on the escaped fences inside the inlined `PROMPT_plan.md` and `PROMPT_build.md` blocks above:** the `\`\`\`` sequences in those inlined blocks are escaped backticks in the plan-document source so the outer 5-backtick fence does not terminate prematurely. When you write the actual `SETUP_BEADS.md` file, those become literal triple-backtick fences. The user-facing rendered `SETUP_BEADS.md` shows code blocks with normal triple backticks; only the plan author needs to be aware of the escape. The simplest way to author this file: copy the prompt content from `ralphLoopBeads/PROMPT_plan.md` and `ralphLoopBeads/PROMPT_build.md` (created in Tasks 5 and 6) verbatim and paste it inside SETUP_BEADS.md's code fences using a 4-backtick outer fence (` ```` `) so the inner triple backticks remain literal. The verification step below catches drift either way.
+> **Note on nested fences:** the inlined `PROMPT_plan.md` and `PROMPT_build.md` blocks above use 4-backtick (` ```` `) outer fences so their inner triple-backtick `bd` command examples stay literal. The `PROMPT_specs.md`, `loop.sh`, `JTBD.md`, and `AGENTS.md` blocks use plain triple-backtick fences. Copy the content between the fences verbatim — no escape sequences, no transformations. The verification steps below catch drift either way.
 
 - [ ] **Step 2: Confirm the file is self-contained (no external fetches required by the user)**
 
@@ -1289,9 +1289,9 @@ Extract the inlined loop.sh from SETUP_BEADS.md (the only `bash` fenced block un
 awk '
   /^## Step 2 — Create loop.sh/ {step2=1; next}
   step2 && /^## Step 3/ {exit}
-  step2 && inblock {print}
   step2 && /^```bash$/ {inblock=1; next}
-  step2 && inblock && /^```$/ {inblock=0}
+  step2 && inblock && /^```$/ {inblock=0; next}
+  step2 && inblock {print}
 ' SETUP_BEADS.md > /tmp/setup_beads_loop.sh
 diff /tmp/setup_beads_loop.sh ralphLoopBeads/loop.sh
 ```
@@ -1305,9 +1305,9 @@ Expected: no output (files identical).
 awk '
   /^## Step 5 — Create PROMPT_specs.md/ {s=1; next}
   s && /^## Step 6/ {exit}
-  s && inblock {print}
   s && /^```markdown$/ {inblock=1; next}
-  s && inblock && /^```$/ {inblock=0}
+  s && inblock && /^```$/ {inblock=0; next}
+  s && inblock {print}
 ' SETUP_BEADS.md > /tmp/setup_beads_prompt_specs.md
 diff /tmp/setup_beads_prompt_specs.md ralphLoopBeads/PROMPT_specs.md
 ```
