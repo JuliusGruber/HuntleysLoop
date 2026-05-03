@@ -31,16 +31,16 @@ After setup, you drive the loop:
 
 Each iteration picks one task, implements it, validates (build/test/lint), commits, and exits with a fresh context. `IMPLEMENTATION_PLAN.md` on disk is the shared state between iterations. Override the model with `RALPH_MODEL=sonnet bash ralphLoop/loop.sh build`.
 
-## Alternative: as a slash command
+## Alternative: as a skill
 
-If you prefer a reusable skill, copy `skills/setup-ralph-loop.md` to your project:
+If you prefer a reusable skill, install it into your project:
 
 ```bash
-mkdir -p .claude/commands
-curl -o .claude/commands/setup-ralph-loop.md https://raw.githubusercontent.com/JuliusGruber/HuntleysLoop/main/skills/setup-ralph-loop.md
+mkdir -p .claude/skills/setup-ralph-loop
+curl -o .claude/skills/setup-ralph-loop/SKILL.md https://raw.githubusercontent.com/JuliusGruber/HuntleysLoop/main/.claude/skills/setup-ralph-loop/SKILL.md
 ```
 
-Then run `/setup-ralph-loop` in Claude Code.
+Claude will auto-discover it; trigger it by saying "set up ralph loop" or `/setup-ralph-loop`. The beads variant is at `.claude/skills/setup-ralph-loop-beads/SKILL.md`.
 
 ## What's in this repo
 
@@ -49,11 +49,11 @@ This repo ships two parallel scaffold tracks — the markdown track (`SETUP.md` 
 | File | Purpose |
 |---|---|
 | `SETUP.md` | Self-contained setup instructions with all templates inline |
-| `skills/setup-ralph-loop.md` | Claude Code slash command — copy to enable `/setup-ralph-loop` |
+| `.claude/skills/setup-ralph-loop/SKILL.md` | Claude Code skill — copy into your project's `.claude/skills/` to enable `/setup-ralph-loop` |
 | `ralphLoop/` | Reference example (not used during setup — templates come from `SETUP.md`) |
 | `documentation/ralph-loop-design.md` | Design rationale and prompt engineering patterns (markdown track) |
 | `SETUP_BEADS.md` | Self-contained setup instructions for the beads track, with all templates inline |
-| `skills/setup-ralph-loop-beads.md` | Claude Code slash command — copy to enable `/setup-ralph-loop-beads` |
+| `.claude/skills/setup-ralph-loop-beads/SKILL.md` | Claude Code skill — copy into your project's `.claude/skills/` to enable `/setup-ralph-loop-beads` |
 | `ralphLoopBeads/` | Reference example for the beads track (no real `.beads/` shipped — created by `bd init` at scaffold time) |
 | `documentation/ralph-loop-beads-design.md` | Design rationale for the beads track |
 
