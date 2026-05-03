@@ -63,7 +63,7 @@ Build mode's Phase 4 explicitly stages `.beads/` together with code paths. The g
 
 ### `SETUP_BEADS.md`
 
-The authoritative scaffold doc. Self-contained (every template inlined). Fetched by `skills/setup-ralph-loop-beads.md` and `.claude/skills/setup-ralph-loop-beads/SKILL.md` from the canonical raw URL. Mirrors `SETUP.md`'s 10-step shape with five steps diverging (0, 1, 2, 3, 4, 8, 9, 10 — see Section 4 of the design spec for the per-step diff).
+The authoritative scaffold doc. Self-contained (every template inlined). Fetched by `.claude/skills/setup-ralph-loop-beads/SKILL.md` from the canonical raw URL. Mirrors `SETUP.md`'s 10-step shape with five steps diverging (0, 1, 2, 3, 4, 8, 9, 10 — see Section 4 of the design spec for the per-step diff).
 
 ### `ralphLoopBeads/` (this repo)
 
